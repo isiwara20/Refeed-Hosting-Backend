@@ -28,3 +28,12 @@ export const getOrderBySurplusDonationId = async (surplusDonationId) => {
     isDeleted: false,
   });
 };
+
+
+export const updateOrderBySurplusDonationId = async (surplusDonationId, updateData) => {
+  return await DonationOrderStatus.findOneAndUpdate(
+    { surplusDonationId, isDeleted: false },
+    updateData,
+    { new: true }
+  );
+};

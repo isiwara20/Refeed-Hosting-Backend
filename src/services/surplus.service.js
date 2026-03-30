@@ -3,6 +3,7 @@ import { SurplusRepository } from "../repositories/surplus.repository.js";
 import { validateTransition } from "./stateMachine.service.js";
 import { now } from "../utils/time.util.js";
 import { DonorRepository } from "../repositories/donor.repository.js";
+import * as DonationOrderStatusRepository from "../repositories/donationOrderStatusRepository.js";
 
 
 /**
@@ -95,6 +96,14 @@ export const SurplusService = {
     donation.lifecycleStatus = "COMPLETED";
     await donation.save();
 
+    // Update corresponding donation order status to "completed"
+    try {
+      await DonationOrderStatusRepository.updateOrderBySurplusDonationId(donationId, { status: "completed" });
+    } catch (err) {
+      console.error("Failed to update donation order status:", err);
+      // Don't throw - the surplus donation was already marked completed
+    }
+
     const donor = await DonorRepository.findByUsername(donation.donorUsername);
     const message = `Donation ${donation._id} completed successfully. Thank you!`;
 
@@ -115,7 +124,17 @@ export const SurplusService = {
 
     validateTransition(donation.lifecycleStatus, "COLLECTED");
     donation.lifecycleStatus = "COLLECTED";
-    return donation.save();
+    await donation.save();
+
+    // Update corresponding donation order status to "in_progress"
+    try {
+      await DonationOrderStatusRepository.updateOrderBySurplusDonationId(donationId, { status: "in_progress" });
+    } catch (err) {
+      console.error("Failed to update donation order status:", err);
+      // Don't throw - the surplus donation was already marked collected
+    }
+
+    return donation;
   }
 
 
