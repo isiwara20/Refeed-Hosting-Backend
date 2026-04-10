@@ -27,10 +27,17 @@ export const approveNgoController = async (req, res) => {
     
     // Trigger verification approved notification
     await notificationService.triggerVerificationApprovedNotification({
-      userId: updated.ngoUsername, // Assuming this maps to user ID
+      userId: updated.ngoId?.username || updated.ngoId, // Use populated ngoId username
       userType: "NGO",
       approvedBy: req.admin.username
     }).catch((err) => console.error("NGO verification approved notification failed:", err));
+
+    await notificationService.notifyAllAdminsVerificationDecision({
+      decision: "approved",
+      targetType: "NGO",
+      targetUsername: updated.ngoId?.username || updated.ngoUsername || "",
+      actedBy: req.admin.username
+    }).catch((err) => console.error("Admin broadcast for NGO approval failed:", err));
     
     res.status(200).json({ message: "NGO verified successfully", updated });
   } catch (err) {
@@ -45,11 +52,19 @@ export const rejectNgoController = async (req, res) => {
     
     // Trigger verification rejected notification
     await notificationService.triggerVerificationRejectedNotification({
-      userId: updated.ngoUsername, // Assuming this maps to user ID
+      userId: updated.ngoId?.username || updated.ngoId, // Use populated ngoId username
       userType: "NGO",
       reason,
       rejectedBy: req.admin.username
     }).catch((err) => console.error("NGO verification rejected notification failed:", err));
+
+    await notificationService.notifyAllAdminsVerificationDecision({
+      decision: "rejected",
+      targetType: "NGO",
+      targetUsername: updated.ngoId?.username || updated.ngoUsername || "",
+      actedBy: req.admin.username,
+      reason
+    }).catch((err) => console.error("Admin broadcast for NGO rejection failed:", err));
     
     res.status(200).json({ message: "NGO rejected", updated });
   } catch (err) {
@@ -74,10 +89,17 @@ export const approveDonorController = async (req, res) => {
     
     // Trigger verification approved notification
     await notificationService.triggerVerificationApprovedNotification({
-      userId: updated.donorUsername, // Assuming this maps to user ID
+      userId: updated.username, // Use username field from DonorProfile
       userType: "Donor",
       approvedBy: req.admin?.username || "admin"
     }).catch((err) => console.error("Donor verification approved notification failed:", err));
+
+    await notificationService.notifyAllAdminsVerificationDecision({
+      decision: "approved",
+      targetType: "Donor",
+      targetUsername: updated.username || "",
+      actedBy: req.admin?.username || "admin"
+    }).catch((err) => console.error("Admin broadcast for donor approval failed:", err));
     
     res.status(200).json({ message: "Donor approved", updated });
   } catch (err) {
@@ -92,11 +114,19 @@ export const rejectDonorController = async (req, res) => {
     
     // Trigger verification rejected notification
     await notificationService.triggerVerificationRejectedNotification({
-      userId: updated.donorUsername, // Assuming this maps to user ID
+      userId: updated.username, // Use username field from DonorProfile
       userType: "Donor",
       reason: reason || "Requirements not met",
       rejectedBy: req.admin?.username || "admin"
     }).catch((err) => console.error("Donor verification rejected notification failed:", err));
+
+    await notificationService.notifyAllAdminsVerificationDecision({
+      decision: "rejected",
+      targetType: "Donor",
+      targetUsername: updated.username || "",
+      actedBy: req.admin?.username || "admin",
+      reason: reason || "Requirements not met"
+    }).catch((err) => console.error("Admin broadcast for donor rejection failed:", err));
     
     res.status(200).json({ message: "Donor rejected", updated });
   } catch (err) {

@@ -68,7 +68,7 @@ export const SurplusController = {
   getQRCode: async (req, res, next) => {
     try {
       const qr = await generateQRCode(
-        `http://localhost:3000/surplus/complete/${req.params.id}`
+        `${process.env.FRONTEND_URL || "http://localhost:3000"}/surplus/complete/${req.params.id}`
       );
       res.json({ qr });
     } catch (e) { next(e); }

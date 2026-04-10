@@ -1,0 +1,57 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - duration: 30
+      arrivalRate: 10
+      name: "Warm up"
+    - duration: 60
+      arrivalRate: 50
+      name: "Load test"
+  defaults:
+    headers:
+      x-username: "testdonor"
+      x-role: "DONOR"
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Auth - Login"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            username: "testdonor"
+            password: "TestPass@123"
+          expect:
+            - statusCode: 200
+
+  - name: "Surplus - List my donations"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/surplus/mine"
+          expect:
+            - statusCode: 200
+
+  - name: "Surplus - Create draft"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/surplus"
+          json:
+            foodType: "veg"
+            quantity:
+              amount: 5
+              unit: "kg"
+            expiryTime: "2027-01-01T12:00:00.000Z"
+            selfDelivery: false
+          expect:
+            - statusCode: 201
+
+  - name: "Donor Profile - Get"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/profile/testdonor"
+          expect:
+            - statusCode: 200

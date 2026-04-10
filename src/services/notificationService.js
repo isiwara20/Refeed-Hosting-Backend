@@ -520,6 +520,82 @@ export const triggerVerificationRejectedNotification = async ({
   });
 };
 
+export const notifyAllAdminsInApp = async ({
+  eventType,
+  subject,
+  message,
+  priority = "HIGH",
+  metadata = {}
+}) => {
+  const admins = await Admin.find({}).select("_id username");
+  if (!admins.length) {
+    return [];
+  }
+
+  return Promise.allSettled(
+    admins.map((admin) =>
+      sendNotification({
+        userId: admin._id,
+        eventType,
+        channel: "INAPP",
+        subject,
+        message,
+        priority,
+        metadata: {
+          audience: "admins",
+          ...metadata
+        }
+      })
+    )
+  );
+};
+
+export const notifyAllAdminsVerificationDecision = async ({
+  decision,
+  targetType,
+  targetUsername,
+  actedBy,
+  reason
+}) => {
+  const normalizedDecision = String(decision || "").toLowerCase();
+  const isApproved = normalizedDecision === "approved";
+  const eventType = isApproved ? "VERIFICATION_APPROVED" : "VERIFICATION_REJECTED";
+  const actor = actedBy || "admin";
+  const entityLabel = String(targetType || "user").toUpperCase();
+  const subject = isApproved
+    ? `${entityLabel} verification approved`
+    : `${entityLabel} verification rejected`;
+  const message = isApproved
+    ? `${entityLabel} account ${targetUsername || "(unknown)"} was approved by ${actor}.`
+    : `${entityLabel} account ${targetUsername || "(unknown)"} was rejected by ${actor}.${reason ? ` Reason: ${reason}` : ""}`;
+
+  const admins = await Admin.find({}).select("_id username");
+  if (!admins.length) {
+    return [];
+  }
+
+  return Promise.allSettled(
+    admins.map((admin) =>
+      sendNotification({
+        userId: admin._id,
+        eventType,
+        channel: "INAPP",
+        subject,
+        message,
+        priority: "HIGH",
+        metadata: {
+          audience: "admins",
+          decision: normalizedDecision,
+          targetType: entityLabel,
+          targetUsername: targetUsername || "",
+          actedBy: actor,
+          reason: reason || ""
+        }
+      })
+    )
+  );
+};
+
 /* =========================
    Food Request Notifications
 ========================= */

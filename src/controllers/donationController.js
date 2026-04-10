@@ -19,8 +19,12 @@ export const createDonation = async (req, res) => {
       location: location || "",
       expiresAt: expiresAt ? new Date(expiresAt) : undefined,
     });
+    
+    // Populate donator to get username for notification
+    const populatedDonation = await donation.populate("donatorId", "username");
+    
     await notificationService.triggerDonationCreatedNotification({
-      userId: donatorId,
+      userId: populatedDonation.donatorId?.username || donatorId,
       donationTitle: donation.title,
       donationId: donation._id.toString(),
       category: donation.category,

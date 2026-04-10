@@ -109,6 +109,17 @@ export const cancelOrder = async (req, res) => {
         metadata: { orderId: cancelled._id?.toString() }
       })
     ]).catch((err) => console.error("Donation order cancelled notification failed:", err));
+
+    await notificationService.notifyAllAdminsInApp({
+      eventType: "DONATION_ORDER_CANCELLED",
+      subject: "Donation order cancelled",
+      message: `Order ${cancelled._id?.toString() || "(unknown)"} between donor ${cancelled.donorUsername || "(unknown)"} and NGO ${cancelled.ngoUsername || "(unknown)"} was cancelled.`,
+      metadata: {
+        orderId: cancelled._id?.toString() || "",
+        donorUsername: cancelled.donorUsername || "",
+        ngoUsername: cancelled.ngoUsername || ""
+      }
+    }).catch((err) => console.error("Admin broadcast for order cancellation failed:", err));
     
     res.status(200).json(cancelled);
   } catch (err) {

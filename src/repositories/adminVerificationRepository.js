@@ -11,7 +11,7 @@ export const getPendingNgos = () =>
     .sort({ createdAt: -1 });
 
 export const findNgoVerificationById = (id) =>
-  NgoVerification.findById(id);
+  NgoVerification.findById(id).populate("ngoId", "name email username");
 
 export const saveNgoVerification = (ngoVerification) =>
   ngoVerification.save();

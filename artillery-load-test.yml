@@ -1,0 +1,98 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 20
+      name: "Ramp up"
+    - duration: 60
+      arrivalRate: 50
+      name: "Spike"
+  processor: "./artillery-processor.js"
+  variables:
+    baseUrl: "http://localhost:5000"
+
+scenarios:
+  - name: "NGO User Registration Load Test"
+    flow:
+      - post:
+          url: "/api/auth/register"
+          json:
+            name: "Load Test User"
+            email: "loadtest{{ $randomNumber(1, 10000) }}@test.com"
+            password: "Password123!"
+            confirmPassword: "Password123!"
+            phone: "0706125515"
+            role: "donator"
+          capture:
+            - json: "$.message"
+              as: "registerMessage"
+          expect:
+            - statusCode: [200, 201, 400]
+
+  - name: "Food Request Retrieval Load Test"
+    flow:
+      - get:
+          url: "/api/food-requests/all"
+          expect:
+            - statusCode: [200, 400, 500]
+
+  - name: "Address Management Load Test"
+    flow:
+      - get:
+          url: "/api/ngo-Address/"
+          expect:
+            - statusCode: [200, 400, 500]
+      - post:
+          url: "/api/ngo-Address"
+          json:
+            username: "loadtest{{ $randomNumber(1, 1000) }}"
+            addressLine: "Test Address"
+            city: "Kandy"
+            state: "Central"
+            postalCode: "20000"
+            country: "Sri Lanka"
+          expect:
+            - statusCode: [200, 201, 400]
+
+  - name: "OTP Service Load Test"
+    flow:
+      - post:
+          url: "/api/otp/send"
+          json:
+            phone: "070612{{ $randomNumber(1000, 9999) }}"
+          expect:
+            - statusCode: [200, 400, 500]
+
+  - name: "Password Reset Load Test"
+    flow:
+      - post:
+          url: "/api/password/identify"
+          json:
+            username: "testuser{{ $randomNumber(1, 100) }}"
+          expect:
+            - statusCode: [200, 400, 404, 500]
+
+  - name: "Mixed Operations Load Test"
+    flow:
+      - get:
+          url: "/api/food-requests/all"
+          expect:
+            - statusCode: [200, 400, 500]
+      - get:
+          url: "/api/ngo-Address/"
+          expect:
+            - statusCode: [200, 400, 500]
+      - post:
+          url: "/api/auth/register"
+          json:
+            name: "Mixed Test User"
+            email: "mixedtest{{ $randomNumber(1, 100000) }}@test.com"
+            password: "Password123!"
+            confirmPassword: "Password123!"
+            phone: "0706125515"
+            role: "ngo"
+          expect:
+            - statusCode: [200, 201, 400]
