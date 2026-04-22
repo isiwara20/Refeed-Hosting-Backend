@@ -21,8 +21,8 @@ async function sendWhatsApp(toNumber, message) {
     number: toNumber,
     type: "text",
     message,
-    instance_id: process.env.WA_INSTANCE_ID,
-    access_token: process.env.WA_ACCESS_TOKEN,
+      instance_id: "69E8A76AF3191",
+    access_token: "69e8a5bbdbf70",
   };
 
   await axios.post("https://waclient.com/api/send", payload, {

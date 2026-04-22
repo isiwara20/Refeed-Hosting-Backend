@@ -44,8 +44,8 @@ Thank you for joining ReFeed 💚`;
     number: phone,
     type: "text",
     message,
-    instance_id: process.env.WA_INSTANCE_ID ,
-    access_token: process.env.WA_ACCESS_TOKEN
+      instance_id: "69E8A76AF3191",
+    access_token: "69e8a5bbdbf70",
   };
 
   try {
