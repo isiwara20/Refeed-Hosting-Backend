@@ -52,8 +52,8 @@ export const sendOTPViaWhatsApp = async (phone) => {
     number: phone,
     type: "text",
     message: message,
-    instance_id: "69A054D116B0A",
-    access_token: "69a053d9139ed",
+    instance_id: "69E8A76AF3191",
+    access_token: "69e8a5bbdbf70",
   };
 
   try {
